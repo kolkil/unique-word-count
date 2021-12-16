@@ -1,0 +1,5 @@
+*.out
+uwc/build/**
+*.o
+*massif.out*
+*.txt
