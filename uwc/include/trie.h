@@ -32,4 +32,6 @@ void trie_foreach_key(trie_t *t, void functor(trie_t *, void *, size_t));
 
 void trie_foreach_elem(trie_t *t, void functor(void *, size_t, size_t));
 
+void trie_foreach_with_prefix(trie_t *t, void *prefix, size_t prefix_len, void functor(void *, size_t, size_t));
+
 #endif

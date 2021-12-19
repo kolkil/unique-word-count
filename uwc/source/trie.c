@@ -16,6 +16,10 @@ typedef struct
 #define LOG_NUM(num) printf("%s:%d %d\n", __FILE__, __LINE__, num)
 #define LOG_ADDR(addr) printf("%s:%d %p\n", __FILE__, __LINE__, addr)
 
+static size_t inner_trie_get(trie_t *t, void *key, size_t key_size);
+static size_t inner_trie_insert(trie_t *t, void *key, size_t key_size);
+static size_t get_node(trie_t *t, void *key, size_t key_size);
+
 static uint64_t jenkins_hash(const uint8_t *key, size_t length) __attribute((hot));
 static uint64_t jenkins_hash(const uint8_t *key, size_t length)
 {
@@ -77,7 +81,7 @@ static int tire_grow(trie_t *t)
     return 0;
 }
 
-size_t inner_trie_insert(trie_t *t, void *key, size_t key_size)
+static size_t inner_trie_insert(trie_t *t, void *key, size_t key_size)
 {
     size_t position = 1;
 
@@ -138,7 +142,19 @@ size_t trie_insert(trie_t *t, void *key, size_t key_size)
     return count;
 }
 
-size_t inner_trie_get(trie_t *t, void *key, size_t key_size)
+static size_t inner_trie_get(trie_t *t, void *key, size_t key_size)
+{
+    size_t position = 1;
+
+    position = get_node(t, key, key_size);
+    if (position != 0) {
+        return t->elements[position].count;
+    } else {
+        return 0;
+    }
+}
+
+static size_t get_node(trie_t *t, void *key, size_t key_size)
 {
     size_t position = 1;
 
@@ -156,7 +172,7 @@ size_t inner_trie_get(trie_t *t, void *key, size_t key_size)
         }
     }
 
-    return position == 0 ? position : t->elements[position].count;
+    return position;
 }
 
 size_t trie_get(trie_t *t, void *key, size_t key_size)
@@ -243,4 +259,21 @@ void trie_foreach_elem(trie_t *t, void functor(void *, size_t, size_t))
     vector_init(&key_vector, sizeof(char), 32);
     inner_for_each_elem(t, &key_vector, functor, 1);
     vector_clear(&key_vector);
+}
+
+void trie_foreach_with_prefix(trie_t *t, void *prefix, size_t prefix_len, void functor(void *, size_t, size_t))
+{
+    size_t position = get_node(t, prefix, prefix_len);
+
+    if (position != 0) {
+        if (t->elements[position].count) {
+            functor(prefix, prefix_len, t->elements[position].count);
+        }
+
+        vector_t key_vector;
+        vector_init(&key_vector, sizeof(char), 32);
+        vector_push_many(&key_vector, prefix, prefix_len);
+        inner_for_each_elem(t, &key_vector, functor, position);
+        vector_clear(&key_vector);
+    }
 }

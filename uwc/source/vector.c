@@ -93,7 +93,7 @@ size_t vector_push_many(vector_t *v, void *items, size_t item_count)
     size_t last_top = 0;
     if (v->empty) {
         v->empty = 0;
-        last_top = v->top + v->elem_size * item_count;
+        last_top = v->top + v->elem_size * item_count - 1;
         first_top = v->top;
     } else {
         last_top = v->top + v->elem_size * item_count;

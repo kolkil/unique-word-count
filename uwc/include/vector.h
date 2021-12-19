@@ -25,4 +25,5 @@ void vector_pop(vector_t *);
 size_t vector_push(vector_t *, void *);
 size_t vector_push_many(vector_t *, void *, size_t);
 int vector_grow(vector_t *);
+
 #endif

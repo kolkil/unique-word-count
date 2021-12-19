@@ -87,16 +87,35 @@ void start(struct mwc_program_config conf)
 
     if (!conf.interactive) {
         if (conf.dont_save_keys_explicitly) {
+            void (*functor)(void *, size_t, size_t);
             if (conf.filter_ge_than || conf.filter_le_than) {
-                trie_foreach_elem(&t, print_elem_filter);
+                functor = print_elem_filter;
             } else {
-                trie_foreach_elem(&t, print_elem);
+                functor = print_elem;
+            }
+            if (conf.use_prefixes) {
+                for (size_t i = 0; i < conf.prefixes.count; ++i) {
+                    char *prefix = (char *)((size_t *)conf.prefixes.data + i);
+                    trie_foreach_with_prefix(&t, prefix, strlen(prefix), functor);
+                }
+            } else {
+                trie_foreach_elem(&t, functor);
             }
         } else {
+            void (*functor)(trie_t *, void *, size_t);
             if (conf.filter_ge_than || conf.filter_le_than) {
-                trie_foreach_key(&t, print_count_filter);
+                functor = print_count_filter;
             } else {
-                trie_foreach_key(&t, print_count);
+                functor = print_count;
+            }
+
+            if (conf.use_prefixes) {
+                for (size_t i = 0; i < conf.prefixes.count; ++i) {
+                    char *prefix = (char *)((size_t *)conf.prefixes.data + i);
+                    trie_foreach_with_prefix(&t, prefix, strlen(prefix), functor == print_count ? print_elem : print_elem_filter);
+                }
+            } else {
+                trie_foreach_key(&t, functor);
             }
         }
     }

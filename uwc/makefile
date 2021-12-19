@@ -4,16 +4,19 @@ CFLAGS = -Wall -Wextra -std=c11 -g -Iinclude/
 BUILD_DIR = build
 BIN_DIR = .
 
-all: pre_conditions program. vector. trie. config. main hash
+all: pre_conditions program. vector. trie. config. input. uwc hash strip
 
 %.:
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/$@o -c source/$@c
 
-main:
-	$(CC) $(CFLAGS) -o $(BIN_DIR)/uwc.out source/main.c $(BUILD_DIR)/*.o
+uwc:
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/uwc.out source/uwc.c $(BUILD_DIR)/*.o
 
 hash:
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/hash.out source/hash.c $(BUILD_DIR)/*.o
+
+strip:
+	$(CC) $(CFLAGS) -o $(BIN_DIR)/strip.out source/strip.c $(BUILD_DIR)/*.o
 
 clean:
 	rm -f bin/* ; rm -f $(BUILD_DIR)/* ;

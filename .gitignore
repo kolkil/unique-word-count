@@ -3,3 +3,5 @@ uwc/build/**
 *.o
 *massif.out*
 *.txt
+*.zip
+*enwik8*
