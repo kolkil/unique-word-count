@@ -166,7 +166,7 @@ static int fill_trie_with_input(trie_t *t, int (*is_separator)(unsigned char), i
                 }
                 // roll the buffer because there may be more in next go
                 else if (idx + str_len >= input_buffer.data_size && idx > 0) {
-                    memcpy(input_buffer.data, input_buffer.data + idx, str_len);
+                    memmove(input_buffer.data, input_buffer.data + idx, str_len);
                     offset = str_len;
                 }
                 // the default normal case
