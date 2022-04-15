@@ -20,6 +20,14 @@ static inline int64_t get_first_str_len(unsigned char *buffer, size_t buffer_siz
     return i;
 }
 
+static inline int64_t get_first_str_len_with_separator(unsigned char *buffer, size_t buffer_size, size_t offset, int (*is_separator)(unsigned char c))
+{
+    size_t i = 0;
+    for (i = 0; i < buffer_size - offset && !is_separator(buffer[offset + i]); ++i)
+        ;
+    return i;
+}
+
 int foreach_input(void to_do(char *str, size_t len))
 {
     vector_t input_buffer;
@@ -39,6 +47,50 @@ int foreach_input(void to_do(char *str, size_t len))
 
                 str = (char *)(input_buffer.data + idx);
                 str_len = get_first_str_len(input_buffer.data, input_buffer.data_size, idx);
+
+                // the case where string is as long or longer than buffer - grow the buffer
+                if (str_len == input_buffer.data_size && idx == 0) {
+                    vector_grow(&input_buffer);
+                    offset = str_len;
+                }
+                // roll the buffer because there may be more in next go
+                else if (idx + str_len >= input_buffer.data_size && idx > 0) {
+                    memcpy(input_buffer.data, input_buffer.data + idx, str_len);
+                    offset = str_len;
+                }
+                // the default normal case
+                else {
+                    to_do(str, str_len);
+                    offset = 0;
+                }
+                idx += str_len;
+            }
+        }
+    }
+
+    vector_clear(&input_buffer);
+    return 0;
+}
+
+int foreach_input_with_separator(void to_do(char *str, size_t len), int (*is_separator)(unsigned char c))
+{
+    vector_t input_buffer;
+    size_t v_initial_size = 8;
+    size_t fill_size = 0;
+    size_t offset = 0;
+
+    vector_init(&input_buffer, sizeof(char), v_initial_size);
+    while (fill_size = read(STDIN_FILENO, input_buffer.data + offset, input_buffer.data_size - offset) + offset, fill_size != 0) {
+        for (size_t idx = 0; idx < fill_size - 1; ++idx) {
+            // skip all the whitespaces at the beginning
+            for (; is_separator(*(unsigned char *)(input_buffer.data + idx)); ++idx)
+                ;
+            if (idx < input_buffer.data_size) {
+                char *str = NULL;
+                size_t str_len = 0;
+
+                str = (char *)(input_buffer.data + idx);
+                str_len = get_first_str_len_with_separator(input_buffer.data, input_buffer.data_size, idx, is_separator);
 
                 // the case where string is as long or longer than buffer - grow the buffer
                 if (str_len == input_buffer.data_size && idx == 0) {

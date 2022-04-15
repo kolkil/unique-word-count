@@ -6,3 +6,4 @@ uwc/build/**
 *.zip
 *enwik8*
 .vscode*
+uwc/test_payloads/**
